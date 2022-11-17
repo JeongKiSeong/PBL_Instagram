@@ -13,7 +13,6 @@ import com.example.howlstagram_f16.R
 import com.example.howlstagram_f16.navigation.model.AlarmDTO
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.ktx.Firebase
 import kotlinx.android.synthetic.main.fragment_alarm.view.*
 import kotlinx.android.synthetic.main.item_comment.view.*
 
@@ -67,6 +66,8 @@ class AlarmFragment : Fragment() {
                 if (task.isSuccessful){
                     val url = task.result!!["image"]
                     Glide.with(view.context).load(url).apply(RequestOptions().circleCrop()).into(view.commentviewitem_imageview_profile)
+                } else {
+                    Glide.with(view.context).load(R.drawable.ic_account).apply(RequestOptions().circleCrop()).into(view.commentviewitem_imageview_profile)
                 }
             }
 
@@ -77,7 +78,7 @@ class AlarmFragment : Fragment() {
                 }
 
                 1 -> {
-                    val str_0 = alarmDTOList[p1].userId + " " + getString(R.string.alarm_comment) + " of " + alarmDTOList[p1].message
+                    val str_0 = alarmDTOList[p1].userId + " " + getString(R.string.alarm_comment) + "\n - " + alarmDTOList[p1].message
                     view.commentviewitem_textview_profile.text = str_0
                 }
 

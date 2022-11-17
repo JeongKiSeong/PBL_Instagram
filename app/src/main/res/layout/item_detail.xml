@@ -24,9 +24,18 @@
     </LinearLayout>
     <ImageView
         android:id="@+id/detailviewitem_imageview_content"
-        android:scaleType="fitXY"
+        android:scaleType="fitCenter"
         android:layout_width="match_parent"
         android:layout_height="250dp" />
+
+
+    <TextView
+        android:id="@+id/detailviewitem_explain_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:text="Explain content" />
 
     <LinearLayout
         android:gravity="center_vertical"
@@ -46,21 +55,15 @@
             android:src="@drawable/ic_chat_black"
             android:layout_width="35dp"
             android:layout_height="35dp" />
-    </LinearLayout>
-    <TextView
-        android:id="@+id/detailviewitem_favoritecounter_textview"
-        android:layout_marginRight="8dp"
-        android:layout_marginLeft="8dp"
-        android:text="like 0"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
 
-    <TextView
-        android:id="@+id/detailviewitem_explain_textview"
-        android:layout_marginRight="8dp"
-        android:layout_marginLeft="8dp"
-        android:text="Explain content"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        <TextView
+            android:id="@+id/detailviewitem_favoritecounter_textview"
+            android:layout_marginRight="8dp"
+            android:layout_marginLeft="8dp"
+            android:text="좋아요 0"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
 
 </LinearLayout>

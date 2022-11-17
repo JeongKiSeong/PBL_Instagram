@@ -1,13 +1,16 @@
 package com.example.howlstagram_f16.navigation
 
-import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Intent
 import android.graphics.PorterDuff
+import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -24,17 +27,16 @@ import com.example.howlstagram_f16.navigation.model.FollowDTO
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.fragment_user.*
 import kotlinx.android.synthetic.main.fragment_user.view.*
 
 class UserFragment : Fragment() {
     var fragmentView : View? = null
+    var photoUri : Uri? = null
     var firestore : FirebaseFirestore? = null
     var uid : String? = null
     private var auth : FirebaseAuth? = null
     private var currentUserUid : String? = null
-    companion object{
-        var PICK_PROFILE_FROM_ALBUM = 10
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -77,17 +79,26 @@ class UserFragment : Fragment() {
 
         fragmentView?.account_iv_profile?.setOnClickListener {
             val photoPickerIntent = Intent(Intent.ACTION_PICK)
-            photoPickerIntent.type = "image/*"
-            //TODO
-            activity?.startActivityForResult(photoPickerIntent, PICK_PROFILE_FROM_ALBUM)
+            photoPickerIntent.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*")
+            imageResult.launch(photoPickerIntent)
+            
+            // TODO profileImages에 프로필 사진 업로드
         }
         getProfileImage()
         getFollowerAndFollowing()
         return fragmentView
     }
 
+    private val imageResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val data: Intent? = result.data
+            photoUri = data?.data
+            Glide.with(this).load(photoUri).into(account_iv_profile)
+        }
+    }
+
     private fun getFollowerAndFollowing(){
-        firestore?.collection("users")?.document(uid!!)?.addSnapshotListener { documentSnapshot, firebaseFirestoreException ->
+        firestore?.collection("users")?.document(uid!!)?.addSnapshotListener { documentSnapshot, _ ->
             if (documentSnapshot == null) return@addSnapshotListener
 
             val followDTO = documentSnapshot.toObject(FollowDTO::class.java)
@@ -171,7 +182,7 @@ class UserFragment : Fragment() {
         }
     }
 
-    fun followAlarm(destinationUid : String){
+    private fun followAlarm(destinationUid : String){
         val alarmDTO = AlarmDTO()
         alarmDTO.destinationUid = destinationUid
         alarmDTO.userId = auth?.currentUser?.email
@@ -185,7 +196,7 @@ class UserFragment : Fragment() {
     }
 
     private fun getProfileImage(){
-        firestore?.collection("profileImages")?.document(uid!!)?.addSnapshotListener{ documentSnapshot, firebaseFirestoreException ->
+        firestore?.collection("profileImages")?.document(uid!!)?.addSnapshotListener{ documentSnapshot, _ ->
             if(documentSnapshot == null) return@addSnapshotListener
             if(documentSnapshot.data != null){
                 val url = documentSnapshot.data!!["image"]
@@ -197,7 +208,7 @@ class UserFragment : Fragment() {
     inner class UserFragmentRecyclerViewAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>(){
         var contentDTOs : ArrayList<ContentDTO> = arrayListOf()
         init {
-            firestore?.collection("images")?.whereEqualTo("uid", uid)?.addSnapshotListener { querySnapshot, firebaseFirestoreException ->
+            firestore?.collection("images")?.whereEqualTo("uid", uid)?.addSnapshotListener { querySnapshot, _ ->
                 //Sometimes, This code return null of querySnapshot when it signout
                 if(querySnapshot == null) return@addSnapshotListener
 

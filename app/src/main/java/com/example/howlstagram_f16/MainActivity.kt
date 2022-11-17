@@ -74,6 +74,12 @@ class MainActivity : AppCompatActivity() {
         bottom_navigation.selectedItemId = R.id.action_home
     }
 
+    //TODO 푸시 알림
+//        override fun onStop() {
+//        super.onStop()
+//        FcmPush.instance.sendMessage("d2bsNfGweca1Nt6maEjlV8x1qeL2","hi", "bye")
+//    }
+
     private fun setToolbarDefault() {
         toolbar_username.visibility = View.GONE
         toolbar_btn_back.visibility = View.GONE

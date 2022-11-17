@@ -57,9 +57,9 @@ class CommentActivity : AppCompatActivity() {
         alarmDTO.message = message
         FirebaseFirestore.getInstance().collection("alarms").document().set(alarmDTO)
 
-        var msg = FirebaseAuth.getInstance().currentUser?.email + " " + getString(R.string.alarm_comment) + " of " + message
+        // TODO : FCM Push
+//        var msg = FirebaseAuth.getInstance().currentUser?.email + " " + getString(R.string.alarm_comment) + " of " + message
 //        FcmPush.instance.sendMessage(destinationUid, "Howlstagram" , msg)
-
     }
 
     inner class CommentRecyclerviewAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>(){
@@ -71,11 +71,11 @@ class CommentActivity : AppCompatActivity() {
                 .document(contentUid!!)
                 .collection("comments")
                 .orderBy("timestamp")
-                .addSnapshotListener { querySnapshot, firebaseFirestoreException ->
+                .addSnapshotListener { querySnapshot, _ ->
                     comments.clear()
                     if(querySnapshot == null) return@addSnapshotListener
 
-                    for (snapshot in querySnapshot.documents!!){
+                    for (snapshot in querySnapshot.documents){
                         comments.add(snapshot.toObject(ContentDTO.Comment::class.java)!!)
                     }
                     notifyDataSetChanged()

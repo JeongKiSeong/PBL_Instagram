@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -35,8 +36,13 @@ class DetailViewFragment : Fragment() {
         firestore = FirebaseFirestore.getInstance()
         uid = FirebaseAuth.getInstance().currentUser?.uid
 
-        view.detailviewfragment_recyclerview.adapter = DetailViewRecyclerViewAdapter()
-        view.detailviewfragment_recyclerview.layoutManager = LinearLayoutManager(activity)
+        val recyclerView = view.detailviewfragment_recyclerview
+        recyclerView.adapter = DetailViewRecyclerViewAdapter()
+        recyclerView.layoutManager = LinearLayoutManager(activity)
+        // 구분선 추가
+        val dividerItemDecoration =
+            DividerItemDecoration( view.detailviewfragment_recyclerview.context, LinearLayoutManager(requireContext()).orientation)
+        recyclerView.addItemDecoration(dividerItemDecoration)
 
         return view
     }
@@ -78,19 +84,20 @@ class DetailViewFragment : Fragment() {
             val viewholder = (p0 as CustomViewHolder).itemView
 
             //UserId
-            viewholder.detailviewitem_profile_textview.text = contentDTOs!![p1].userId
+            viewholder.detailviewitem_profile_textview.text = contentDTOs[p1].userId
 
             //Image
-            Glide.with(p0.itemView.context).load(contentDTOs!![p1].imageUrl).into(viewholder.detailviewitem_imageview_content)
+            Glide.with(p0.itemView.context).load(contentDTOs[p1].imageUrl).into(viewholder.detailviewitem_imageview_content)
 
             //Explain of content
-            viewholder.detailviewitem_explain_textview.text = contentDTOs!![p1].explain
+            viewholder.detailviewitem_explain_textview.text = contentDTOs[p1].explain
 
             //likes
-            viewholder.detailviewitem_favoritecounter_textview.text = "Likes " + contentDTOs!![p1].favoriteCount
+            viewholder.detailviewitem_favoritecounter_textview.text = "좋아요 " + contentDTOs[p1].favoriteCount
 
+            // TODO 프로필 이미지 불러오기
             //profile image
-            //Glide.with(p0.itemView.context).load(contentDTOs!![p1].imageUrl).into(viewholder.detailviewitem_profile_image)
+            //Glide.with(p0.itemView.context).load(contentDTOs[p1].imageUrl).into(viewholder.detailviewitem_profile_image)
 
             //This code is when the button is clicked
             viewholder.detailviewitem_favorite_imageview.setOnClickListener {
@@ -147,7 +154,7 @@ class DetailViewFragment : Fragment() {
                 transition.set(tsDoc,contentDTO)
             }
         }
-        private fun favoriteAlarm(destinationUid: String){
+        private fun favoriteAlarm(destinationUid: String) {
             val alarmDTO = AlarmDTO()
             alarmDTO.destinationUid = destinationUid
             alarmDTO.userId = FirebaseAuth.getInstance().currentUser?.email
@@ -157,7 +164,7 @@ class DetailViewFragment : Fragment() {
             FirebaseFirestore.getInstance().collection("alarms").document().set(alarmDTO)
 
             var message = FirebaseAuth.getInstance().currentUser?.email + getString(R.string.alarm_favorite)
-//            FcmPush.instance.sendMessage(destinationUid, "Howlstagram" , message)
+//        FcmPush.instance.sendMessage(destinationUid, "Howlstagram" , msg)
         }
     }
 }
