@@ -1,6 +1,7 @@
 package com.example.howlstagram_f16.navigation
 
 import android.content.Intent
+import android.graphics.Rect
 import android.os.Bundle
 import android.text.Layout
 import android.view.LayoutInflater
@@ -47,6 +48,7 @@ class DetailViewFragment : Fragment() {
         return view
     }
 
+
     inner class DetailViewRecyclerViewAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         var contentDTOs: ArrayList<ContentDTO> = arrayListOf()
         var contentUidList: ArrayList<String> = arrayListOf()
@@ -59,7 +61,7 @@ class DetailViewFragment : Fragment() {
                 if(querySnapshot == null) return@addSnapshotListener
 
                 for (snapshot in querySnapshot!!.documents){
-                    var item = snapshot.toObject(ContentDTO::class.java)
+                    val item = snapshot.toObject(ContentDTO::class.java)
                     contentDTOs.add(item!!)
                     contentUidList.add(snapshot.id)
                 }
