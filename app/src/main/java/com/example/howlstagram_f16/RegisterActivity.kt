@@ -63,7 +63,7 @@ class RegisterActivity : AppCompatActivity() {
                         .setMessage("로그인 화면으로 이동합니다.")
                         .setPositiveButton("확인") { _, _ ->
                             Firebase.auth.signOut() // 회원가입하면 자동 login 되기 때문에 signOut
-                            supportFragmentManager.popBackStack()
+                            finish()
                         }
                         .show()
                 } else {

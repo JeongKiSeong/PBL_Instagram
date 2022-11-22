@@ -58,8 +58,8 @@ class CommentActivity : AppCompatActivity() {
         FirebaseFirestore.getInstance().collection("alarms").document().set(alarmDTO)
 
         // TODO : FCM Push
-//        var msg = FirebaseAuth.getInstance().currentUser?.email + " " + getString(R.string.alarm_comment) + " of " + message
-//        FcmPush.instance.sendMessage(destinationUid, "Howlstagram" , msg)
+        val msg = FirebaseAuth.getInstance().currentUser?.email + " " + getString(R.string.alarm_comment) + " of " + message
+        FcmPush.instance.sendMessage(destinationUid, "Howlstagram" , msg)
     }
 
     inner class CommentRecyclerviewAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>(){

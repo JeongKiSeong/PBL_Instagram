@@ -10,6 +10,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.core.content.ContextCompat
@@ -24,13 +25,22 @@ import com.example.howlstagram_f16.R
 import com.example.howlstagram_f16.navigation.model.AlarmDTO
 import com.example.howlstagram_f16.navigation.model.ContentDTO
 import com.example.howlstagram_f16.navigation.model.FollowDTO
+import com.example.howlstagram_f16.navigation.util.FcmPush
+import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.UploadTask
+import kotlinx.android.synthetic.main.activity_add_photo.*
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_user.*
 import kotlinx.android.synthetic.main.fragment_user.view.*
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.collections.ArrayList
 
 class UserFragment : Fragment() {
+    var storage : FirebaseStorage? = null
     var fragmentView : View? = null
     var photoUri : Uri? = null
     var firestore : FirebaseFirestore? = null
@@ -46,9 +56,11 @@ class UserFragment : Fragment() {
 
         fragmentView = LayoutInflater.from(activity).inflate(R.layout.fragment_user, container, false)
         uid = arguments?.getString("destinationUid")
-        firestore = FirebaseFirestore.getInstance()
+        storage = FirebaseStorage.getInstance()
         auth = FirebaseAuth.getInstance()
+        firestore = FirebaseFirestore.getInstance()
         currentUserUid = auth?.currentUser?.uid
+
 
         if(uid == currentUserUid){
             //MyPage
@@ -81,7 +93,7 @@ class UserFragment : Fragment() {
             val photoPickerIntent = Intent(Intent.ACTION_PICK)
             photoPickerIntent.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*")
             imageResult.launch(photoPickerIntent)
-            
+
             // TODO profileImages에 프로필 사진 업로드
         }
         getProfileImage()
@@ -89,13 +101,40 @@ class UserFragment : Fragment() {
         return fragmentView
     }
 
+    override fun onResume() {
+        super.onResume()
+        getProfileImage()
+    }
+
     private val imageResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val data: Intent? = result.data
             photoUri = data?.data
             Glide.with(this).load(photoUri).into(account_iv_profile)
+
+            val uid = FirebaseAuth.getInstance().currentUser?.uid
+            val storageRef = FirebaseStorage.getInstance().reference.child("userProfileImages").child(uid!!)
+            storageRef.putFile(photoUri!!).continueWithTask { task: Task<UploadTask.TaskSnapshot> ->
+                return@continueWithTask storageRef.downloadUrl
+            }.addOnSuccessListener { uri ->
+                val map = HashMap<String,Any>()
+                map["image"] = uri.toString()
+                FirebaseFirestore.getInstance().collection("profileImages").document(uid).set(map)
+            }
+        }
+        getProfileImage()
+    }
+
+    private fun getProfileImage(){
+        firestore?.collection("profileImages")?.document(uid!!)?.addSnapshotListener{ documentSnapshot, _ ->
+            if(documentSnapshot == null) return@addSnapshotListener
+            if(documentSnapshot.data != null){
+                val url = documentSnapshot.data!!["image"]
+                Glide.with(requireActivity()).load(url).apply(RequestOptions().circleCrop()).into(fragmentView?.account_iv_profile!!)
+            }
         }
     }
+
 
     private fun getFollowerAndFollowing(){
         firestore?.collection("users")?.document(uid!!)?.addSnapshotListener { documentSnapshot, _ ->
@@ -191,19 +230,11 @@ class UserFragment : Fragment() {
         alarmDTO.timestamp = System.currentTimeMillis()
         FirebaseFirestore.getInstance().collection("alarms").document().set(alarmDTO)
 
-//        var message = auth?.currentUser?.email + getString(R.string.alarm_follow)
-//        FcmPush.instance.sendMessage(destinationUid,"Howlstagram" , message )
+        // TODO
+        val message = auth?.currentUser?.email + getString(R.string.alarm_follow)
+        FcmPush.instance.sendMessage(destinationUid,"Howlstagram" , message )
     }
 
-    private fun getProfileImage(){
-        firestore?.collection("profileImages")?.document(uid!!)?.addSnapshotListener{ documentSnapshot, _ ->
-            if(documentSnapshot == null) return@addSnapshotListener
-            if(documentSnapshot.data != null){
-                val url = documentSnapshot.data!!["image"]
-                Glide.with(requireActivity()).load(url).apply(RequestOptions().circleCrop()).into(fragmentView?.account_iv_profile!!)
-            }
-        }
-     }
 
     inner class UserFragmentRecyclerViewAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>(){
         var contentDTOs : ArrayList<ContentDTO> = arrayListOf()
