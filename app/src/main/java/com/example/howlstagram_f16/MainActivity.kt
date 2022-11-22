@@ -8,7 +8,11 @@ import android.view.View
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.howlstagram_f16.navigation.*
+import com.example.howlstagram_f16.navigation.util.FcmPush
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.installations.FirebaseInstallations
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -74,11 +78,11 @@ class MainActivity : AppCompatActivity() {
         bottom_navigation.selectedItemId = R.id.action_home
     }
 
-    //TODO 푸시 알림
-//        override fun onStop() {
-//        super.onStop()
-//        FcmPush.instance.sendMessage("d2bsNfGweca1Nt6maEjlV8x1qeL2","hi", "bye")
-//    }
+    override fun onStop() {
+        super.onStop()
+
+        FcmPush.instance.sendMessage("rG78toed3lMw2aTa7JMlkPlcbD92","test", "test")
+    }
 
     private fun setToolbarDefault() {
         toolbar_username.visibility = View.GONE

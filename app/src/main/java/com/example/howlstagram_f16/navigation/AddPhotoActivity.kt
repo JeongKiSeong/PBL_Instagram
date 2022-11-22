@@ -6,6 +6,7 @@ import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import com.bumptech.glide.Glide
 import com.example.howlstagram_f16.R
@@ -50,6 +51,7 @@ class AddPhotoActivity : AppCompatActivity() {
             val data: Intent? = result.data
             photoUri = data?.data
             Glide.with(this).load(photoUri).into(addphoto_image)
+            // Toast
         } else {
             finish()
         }
@@ -86,6 +88,7 @@ class AddPhotoActivity : AppCompatActivity() {
                 firestore?.collection("images")?.document()?.set(contentDTO)
 
                 setResult(Activity.RESULT_OK)
+                Toast.makeText(this, "업로드 성공", Toast.LENGTH_SHORT).show()
 
                 finish()
             }

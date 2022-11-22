@@ -1,6 +1,7 @@
 package com.example.howlstagram_f16.navigation
 
 import android.content.Intent
+import android.graphics.Rect
 import android.os.Bundle
 import android.text.Layout
 import android.view.LayoutInflater
@@ -11,6 +12,7 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import com.example.howlstagram_f16.R
 import com.example.howlstagram_f16.navigation.model.AlarmDTO
 import com.example.howlstagram_f16.navigation.model.ContentDTO
@@ -19,6 +21,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.android.synthetic.main.fragment_detail.view.*
+import kotlinx.android.synthetic.main.fragment_user.view.*
 import kotlinx.android.synthetic.main.item_detail.view.*
 import java.text.FieldPosition
 
@@ -47,6 +50,7 @@ class DetailViewFragment : Fragment() {
         return view
     }
 
+
     inner class DetailViewRecyclerViewAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         var contentDTOs: ArrayList<ContentDTO> = arrayListOf()
         var contentUidList: ArrayList<String> = arrayListOf()
@@ -58,8 +62,8 @@ class DetailViewFragment : Fragment() {
                 //Sometimes, This code return null of querySnapshot when it signout
                 if(querySnapshot == null) return@addSnapshotListener
 
-                for (snapshot in querySnapshot!!.documents){
-                    var item = snapshot.toObject(ContentDTO::class.java)
+                for (snapshot in querySnapshot.documents){
+                    val item = snapshot.toObject(ContentDTO::class.java)
                     contentDTOs.add(item!!)
                     contentUidList.add(snapshot.id)
                 }
@@ -97,7 +101,13 @@ class DetailViewFragment : Fragment() {
 
             // TODO 프로필 이미지 불러오기
             //profile image
-            //Glide.with(p0.itemView.context).load(contentDTOs[p1].imageUrl).into(viewholder.detailviewitem_profile_image)
+            firestore?.collection("profileImages")?.document(contentDTOs[p1].uid!!)?.addSnapshotListener{ documentSnapshot, _ ->
+                if(documentSnapshot == null) return@addSnapshotListener
+                if(documentSnapshot.data != null){
+                    val url = documentSnapshot.data!!["image"]
+                    Glide.with(requireActivity()).load(url).apply(RequestOptions().circleCrop()).into(viewholder.detailviewitem_profile_image)
+                }
+            }
 
             //This code is when the button is clicked
             viewholder.detailviewitem_favorite_imageview.setOnClickListener {
@@ -131,8 +141,8 @@ class DetailViewFragment : Fragment() {
                 startActivity(intent)
             }
 
-        }
 
+        }
         private fun favoriteEvent(position: Int){
             val tsDoc = firestore?.collection("images")?.document(contentUidList[position])
             firestore?.runTransaction{ transition ->
@@ -163,8 +173,9 @@ class DetailViewFragment : Fragment() {
             alarmDTO.timestamp = System.currentTimeMillis()
             FirebaseFirestore.getInstance().collection("alarms").document().set(alarmDTO)
 
-            var message = FirebaseAuth.getInstance().currentUser?.email + getString(R.string.alarm_favorite)
-//        FcmPush.instance.sendMessage(destinationUid, "Howlstagram" , msg)
+            val message = FirebaseAuth.getInstance().currentUser?.email + getString(R.string.alarm_favorite)
+            FcmPush.instance.sendMessage(destinationUid, "Howlstagram" , message)
         }
     }
+
 }
